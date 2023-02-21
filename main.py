@@ -52,58 +52,105 @@
 # cap.release()
 # cv2.destroyAllWindows()
 
-# import the necessary packages
-import numpy as np
-import cv2
 
-# initialize the HOG descriptor/person detector
+
+
+
+# import the necessary packages
+# import numpy as np
+# import cv2
+#
+# # initialize the HOG descriptor/person detector
+# hog = cv2.HOGDescriptor()
+# hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
+#
+# cv2.startWindowThread()
+#
+# # open webcam video stream
+# cap = cv2.VideoCapture(0)
+#
+# # the output will be written to output.avi
+# out = cv2.VideoWriter(
+#     'output.avi',
+#     cv2.VideoWriter_fourcc(*'MJPG'),
+#     15.,
+#     (640, 480))
+#
+# while (True):
+#     # Capture frame-by-frame
+#     ret, frame = cap.read()
+#
+#     # resizing for faster detection
+#     frame = cv2.resize(frame, (640, 480))
+#     # using a greyscale picture, also for faster detection
+#     gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
+#
+#     # detect people in the image
+#     # returns the bounding boxes for the detected objects
+#     boxes, weights = hog.detectMultiScale(frame, winStride=(8, 8))
+#
+#     boxes = np.array([[x, y, x + w, y + h] for (x, y, w, h) in boxes])
+#
+#     for (xA, yA, xB, yB) in boxes:
+#         # display the detected boxes in the colour picture
+#         cv2.rectangle(frame, (xA, yA), (xB, yB),
+#                       (0, 255, 0), 2)
+#
+#     # Write the output video
+#     out.write(frame.astype('uint8'))
+#     # Display the resulting frame
+#     cv2.imshow('frame', frame)
+#     cv2.imshow('gray', gray)
+#     if cv2.waitKey(1) & 0xFF == ord('q'):
+#         break
+#
+# # When everything done, release the capture
+# cap.release()
+# # and release the output
+# out.release()
+# # finally, close the window
+# cv2.destroyAllWindows()
+# cv2.waitKey(1)
+
+
+import cv2
+import imutils
+
+# Initializing the HOG person
+# detector
 hog = cv2.HOGDescriptor()
 hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
 
-cv2.startWindowThread()
-
-# open webcam video stream
 cap = cv2.VideoCapture(0)
 
-# the output will be written to output.avi
-out = cv2.VideoWriter(
-    'output.avi',
-    cv2.VideoWriter_fourcc(*'MJPG'),
-    15.,
-    (640, 480))
+while cap.isOpened():
+    # Reading the video stream
+    ret, image = cap.read()
+    if ret:
+        image = imutils.resize(image,
+                               width=min(400, image.shape[1]))
 
-while (True):
-    # Capture frame-by-frame
-    ret, frame = cap.read()
+        # Detecting all the regions
+        # in the Image that has a
+        # pedestrians inside it
+        (regions, _) = hog.detectMultiScale(image,
+                                            winStride=(4, 4),
+                                            padding=(4, 4),
+                                            scale=1.05)
 
-    # resizing for faster detection
-    frame = cv2.resize(frame, (640, 480))
-    # using a greyscale picture, also for faster detection
-    gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
+        # Drawing the regions in the
+        # Image
+        for (x, y, w, h) in regions:
+            cv2.rectangle(image, (x, y),
+                          (x + w, y + h),
+                          (0, 0, 255), 2)
 
-    # detect people in the image
-    # returns the bounding boxes for the detected objects
-    boxes, weights = hog.detectMultiScale(frame, winStride=(8, 8))
-
-    boxes = np.array([[x, y, x + w, y + h] for (x, y, w, h) in boxes])
-
-    for (xA, yA, xB, yB) in boxes:
-        # display the detected boxes in the colour picture
-        cv2.rectangle(frame, (xA, yA), (xB, yB),
-                      (0, 255, 0), 2)
-
-    # Write the output video
-    out.write(frame.astype('uint8'))
-    # Display the resulting frame
-    cv2.imshow('frame', frame)
-    cv2.imshow('gray', gray)
-    if cv2.waitKey(1) & 0xFF == ord('q'):
+        # Showing the output Image
+        cv2.imshow("Image", image)
+        if cv2.waitKey(25) & 0xFF == ord('q'):
+            break
+    else:
         break
 
-# When everything done, release the capture
 cap.release()
-# and release the output
-out.release()
-# finally, close the window
 cv2.destroyAllWindows()
-cv2.waitKey(1)
